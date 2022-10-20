@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/proyecto_puertas.iml" filepath="$PROJECT_DIR$/.idea/proyecto_puertas.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/raspi_puertas.iml" filepath="$PROJECT_DIR$/.idea/raspi_puertas.iml" />
     </modules>
   </component>

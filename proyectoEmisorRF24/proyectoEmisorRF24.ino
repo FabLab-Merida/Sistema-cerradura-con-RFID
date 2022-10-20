@@ -17,7 +17,7 @@ void mostrarByteArray(byte* buffer, byte bufferSize) {
 MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
 
 RF24 myRadio (9, 10);
-byte addresses[][6] = {"0"};
+byte addresses[6] = {"0"};
 const int TriggerPin = 4;      //Trig pin
 const int EchoPin = 3;         //Echo pin
 long Duration = 0;

@@ -20,7 +20,7 @@ void mostrarByteArray(byte* buffer, byte bufferSize) {
     Serial.print(buffer[i], HEX);
   }
 }
-int ackData[3] = {0,0,0};
+
 void setup() 
 {
   Serial.begin(115200);
@@ -42,8 +42,6 @@ void loop()
     }
 
     mostrarByteArray(keyA.keyByte, MFRC522::MF_KEY_SIZE);
-
-    radio.writeAckPayload(1, ackData)
     //Serial.print("\nPackage:");
     //Serial.print(data.id);
     //Serial.print("\n");
