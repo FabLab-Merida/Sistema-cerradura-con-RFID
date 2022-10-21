@@ -31,7 +31,7 @@
 const byte numSlaves = 1;
 
 int sendVal[2] = {1,2}; // this is just a dummy so I can send something
-int ackMessg[3]; // values from the hand-helds
+byte ackMessg = 0; // values from the hand-helds
 
 unsigned long currentMillis;
 unsigned long prevMillis;

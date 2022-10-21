@@ -28,7 +28,7 @@ uint8_t direcciones_pipes[][6] = {"2mas", "2nod"};
  * Definicion de pipes
  * **/
 
-bool AccesoPermitido[1] = {false};
+bool AccesoPermitido = false;
 
 void setup()
 {
@@ -38,10 +38,7 @@ void setup()
     radio.setChannel(RF_CHANNEL);
     radio.setPALevel(RF24_PA_MAX); // 0dBm
     radio.setDataRate( RF24_250KBPS ) ;
-
     radio.openReadingPipe(1, direcciones_pipes[0]);
-    radio.openWritingPipe(direcciones_pipes[1]);
-
     radio.startListening();
 
 //    mfrc522.PCD_Init();
@@ -58,6 +55,10 @@ void loop()
     // }
     
     // // Mostrar información de la tarjeta por el monitor serie
+    
+    delay(1000);
+    
+    
 
 }
 
@@ -78,6 +79,7 @@ void mostrarByteArray(byte* buffer, byte bufferSize) {
 void comprobarRadio() {
   if (radio.available())
     {
+      bool completado = false;
       while (radio.available())
       {
         radio.read( &clave, MFRC522::MF_KEY_SIZE );
@@ -85,25 +87,14 @@ void comprobarRadio() {
       newRequest = true;
       Serial.println(F("UID de la tarjeta:"));
       mostrarByteArray(clave.keyByte, MFRC522::MF_KEY_SIZE);
-      Serial.print("Coinciden los valores? ");
-      if (clave.keyByte[0] == 0x1A) {
-        AccesoPermitido[0] = true;
-        Serial.println("Si");
-      } else {
-        AccesoPermitido[0] = false;
-        Serial.println("No");
-      }
     }
 }
 void responder() {
   if (newRequest) {
-    radio.stopListening();
-    bool rslt;
-    delay(1000);
-    rslt = radio.write( &AccesoPermitido, sizeof(AccesoPermitido) );
-    radio.startListening();
-    Serial.println("Respondido");
+    radio.openWritingPipe(direcciones_pipes[1]);
+    radio.writeAckPayload(1,0x1,sizeof(0x1));
     newRequest = false;
+    Serial.println("Peticion Respondida con true");
   }
   
 }
