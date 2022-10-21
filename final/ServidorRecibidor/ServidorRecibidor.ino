@@ -38,7 +38,6 @@ void loop()
       radio.read( &keyA, MFRC522::MF_KEY_SIZE );
     }
     
-    radio.writeAckPayload( 1, rec, sizeof(int) );
     radio.read( &RFID_Data, sizeof(RFID_Data) );
     mostrarByteArray(keyA.keyByte, MFRC522::MF_KEY_SIZE);
     Serial.print("Data got is: ");
