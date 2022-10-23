@@ -2,7 +2,7 @@
 #include <SPI.h>
 #include "RF24.h"
 #include <MFRC522.h>
-/************/
+/*************/
 /* Constantes */
 
 #define SERIAL_BITRATE 115200
