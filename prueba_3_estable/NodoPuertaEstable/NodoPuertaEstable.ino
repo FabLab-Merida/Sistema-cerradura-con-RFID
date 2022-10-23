@@ -81,14 +81,9 @@ int sendVal[2] = {0,0}; // this is just a dummy so I can send something
 byte ackMessg; // values from the hand-helds
 
 unsigned long currentMillis;
-unsigned long prevMillis;
-unsigned long txIntervalMillis = 50;  //1000;
-int txVal = 0;
+unsigned long startMillis;
+unsigned long txIntervalMillis =2100;  //1000;
 
-int slaveData[numSlaves][3];
-int potVal[numSlaves];
-byte rxFails[numSlaves];
-byte maxFails = 8;
 bool newData = false;
 bool dataReceived[1];
 bool respondido = true;
@@ -138,10 +133,19 @@ void loop()
     digitalWrite(LED_PIN_DENEGADO, LOW);
     EsperandoNewAuth = true;
     procesar();
+  }
+  startMillis = millis();
+  while (EsperandoNewAuth == true && newData == false) {
+
     esperar_respuesta();
-  } else {
-    
-    esperar_respuesta();
+    currentMillis = millis();
+    delay(150);
+    if (currentMillis - startMillis >= txIntervalMillis) {
+      Serial.println("Timed out in");
+      blink_timeout();
+      Serial.println("Timed out out");
+      EsperandoNewAuth = false;
+    }
   }
 
 
@@ -150,7 +154,19 @@ void loop()
   // Mostrar información de la tarjeta por el monitor, serie
   
 
+void blink_timeout() {
+    for (int i = 0; i <= 5; i++) {
+      Serial.println("+");
+      digitalWrite(LED_PIN_DENEGADO, HIGH);
+      digitalWrite(LED_PIN_LISTO, LOW);
+      delay(200);
+      Serial.println("-");
+      digitalWrite(LED_PIN_DENEGADO, LOW);
+      digitalWrite(LED_PIN_LISTO, HIGH);
+      delay(200);
 
+    }
+}
 
 void procesar(){
     char rslt;
@@ -167,6 +183,7 @@ void esperar_respuesta(){
     if ( radio.available() ) {
         radio.read( &dataReceived, sizeof(dataReceived) );
         newData = true;
+        
 
         radio.stopListening();
     }
