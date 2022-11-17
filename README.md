@@ -10,3 +10,13 @@ Adicionalmente el servidor registrará la hora y la persona que manipula la cerr
 - 1 Lector RFID RC522
 - 1 Raspberry pi 4
 - Leds
+
+
+# Partes del proyecto
+
+## Conexión entre 2 Arduino
+Los archivos utilizados están disponibles en la subcarpeta [prueba_3_estable](prueba_3_estable)
+
+El programa del nodo estará constantemente a la espera de que se acerque una tarjeta rfid. Cuando esta se detecte, encenderá la radio para poder enviar por radiofrecuencia el codigo del rfid al servidor.
+
+Cuando el servidor recibe algun codigo rfid, deja de escuchar por radio y comprueba si esa ID está autorizada o no. Posteriormente encenderá la radio en modo escritura y enviará la respuesta (permitido o no). Para finalizar se apagará el modo de escritura y encenderá el modo de escucha a la espera de que otro nodo de puerta envie el ID de la tarjeta Rfid para autorizar un nuevo acceso.
