@@ -14,6 +14,8 @@ Adicionalmente el servidor registrará la hora y la persona que manipula la cerr
 ## Documentacion adicional:
 Vease [el directorio de documentacion del proyecto](Documentacion). 
 
+Hay un documento donde se detalla la linea temporal de este proyecto: [Linea Temporal](Documentacion/timeline.md)
+
 # Partes del proyecto
 
 ## Conexión entre 2 Arduino
