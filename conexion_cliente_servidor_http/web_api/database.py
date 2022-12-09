@@ -8,12 +8,12 @@ schema = {
     "puertas": [1,2],
     "usuarios": [
         {
-            "nombre_usuario": "Usuario1",
+            "nombre": "Usuario1",
             "rfid": "AAAA-BBBB-CCCC-DDDD",
             "puertas_acceso": [1]
         },
 {
-            "nombre_usuario": "Usuario1",
+            "nombre": "Usuario1",
             "rfid": "26-196-179-180",
             "puertas_acceso": [1]
         }
@@ -38,15 +38,20 @@ class Database:
 
     def verifify_access(self, door_node, rfid_code):
         door_node = int(door_node)
+        print(f"\n\nVerificando acceso de usuario para la puerta {door_node}")
 
         def comprueba(user):
             return user.get("rfid") == rfid_code
         #matches = list(filter(lambda x: x.get("rfid_id") == rfid_code, self.db["usuarios"]))
         matches = list(filter(comprueba, self.db["usuarios"]))
         if len(matches) == 0:
+            print("EL USUARIO NO ESTA REGISTRADO")
             return None
         if len(matches) == 1:
-            return door_node in matches[0].get("puertas_acceso")
+            acceso = door_node in matches[0].get("puertas_acceso")
+            print(f"EL USUARIO '{matches[0].get('nombre')}' {'' if acceso else 'NO ' }TIENE ACCESO A LA PUERTA")
+
+            return acceso
         return False
 
 if __name__ == '__main__':

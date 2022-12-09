@@ -11,16 +11,21 @@
 #define RFID_PIN_RESET 5
 #define RFID_PIN_SPI 21
 /* LUD LED DE PRUEBA*/
-#define LED_PIN_DENEGADO 7
-#define LED_PIN_PERMITIDO 8
-#define LED_PIN_LISTO 5
+#define LED_PIN_LISTO 14
+#define LED_PIN_DENEGADO 12
+#define LED_PIN_PERMITIDO 13
 
 
 
-const char* ssid     = "FABLAB";
-const char* password = "FabLabMerida2020";
 
-const char* host = "158.49.92.110";
+//const char* ssid     = "FABLAB";
+//const char* password = "FabLabMerida2020";
+
+const char* ssid     = "REDACTED";
+const char* password = "REDACTED";
+
+//const char* host = "158.49.92.110";
+const char* host = "192.168.0.135"; // IP local del servidor
 const char* nodopuerta   = "1";
 /* Inicializaciones de clase */
 
@@ -48,6 +53,10 @@ void setup()
     mfrc522.PCD_Init();
     delay(10);
 
+    pinMode(LED_PIN_LISTO, OUTPUT);
+    pinMode(LED_PIN_DENEGADO , OUTPUT);
+    pinMode(LED_PIN_PERMITIDO, OUTPUT);
+
     // We start by connecting to a WiFi network
 
     Serial.println();
@@ -68,6 +77,8 @@ void setup()
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
     Serial.println("Setup Finalizado");
+    digitalWrite(LED_PIN_LISTO,HIGH);
+
 }
 
 /** Prubeas **/
@@ -75,7 +86,7 @@ void loop()
 {
     if (!mfrc522.PICC_IsNewCardPresent()) {
         Serial.println("Esperando tarjeta");
-        delay(2000);
+        delay(500);
         return;
     }
 
@@ -83,13 +94,23 @@ void loop()
     // En caso contrario que no continúe
     if (!mfrc522.PICC_ReadCardSerial()) {
         Serial.println("Esperando tarjeta");
-        delay(2000);
+        delay(500);
         return;
     }
+    digitalWrite(LED_PIN_LISTO,LOW);
     mostrarByteArray(mfrc522.uid.uidByte, mfrc522.uid.size);  // Motrar el UID
     String strUID1 = String(mfrc522.uid.uidByte[0]) + "-" + String(mfrc522.uid.uidByte[1]) + "-" + String(mfrc522.uid.uidByte[2]) + "-" + String(mfrc522.uid.uidByte[3]);
     Serial.println(strUID1);
-    autenticar(strUID1);
+    if (autenticar(strUID1)) {
+      digitalWrite(LED_PIN_PERMITIDO,HIGH);
+
+    } else {
+      digitalWrite(LED_PIN_DENEGADO,HIGH);
+    }
+    delay(1500);
+    digitalWrite(LED_PIN_PERMITIDO,LOW);
+    digitalWrite(LED_PIN_DENEGADO,LOW);
+    digitalWrite(LED_PIN_LISTO,HIGH);
 }
 bool autenticar (String privateKey) {
       Serial.print("connecting to ");
@@ -97,10 +118,11 @@ bool autenticar (String privateKey) {
 
     // Use WiFiClient class to create TCP connections
     HTTPClient http;
-    const int httpPort = 5000;
+    const int httpPort = 80;
 
     // We now create a URI for the request
-    String url = "http://158.49.92.110";
+    String url = "http://";
+    url += host;
     url += "/";
     url += "?nodo=";
     url += "1";
@@ -120,7 +142,7 @@ bool autenticar (String privateKey) {
     Serial.println("http code");
     Serial.print(httpCode);
     Serial.println();
-
+    bool acceso_concedido = false;
 
         // httpCode will be negative on error
         if(httpCode > 0) {
@@ -131,20 +153,22 @@ bool autenticar (String privateKey) {
             if(httpCode == HTTP_CODE_OK) {
                 String payload = http.getString();
                 Serial.println("Acceso Concedido");
+                acceso_concedido = true;
 
             } else if (httpCode == 500) {
               Serial.println("Usuario no encontrado");
+              acceso_concedido = false;
             } else if (httpCode == 401) {
               Serial.println("Acceso denegado");
+              acceso_concedido = false;
             }
         } else {
             Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
         }
-
         http.end();
 
     Serial.println();
     Serial.println("closing connection");
-    return true;
+    return acceso_concedido;
 }
 
