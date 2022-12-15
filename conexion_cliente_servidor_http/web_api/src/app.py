@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, make_response
 
 import database
 
@@ -97,9 +97,19 @@ def api_edit_user():
 
     return redirect(url_for('main_page'))
 
+@app.route('/api/delete_user', methods=['POST'])
+def delete_user(rfid):
+    # Get the RFID from the request body
+    rfid = request.form.get('rfid')
 
+    # Query the database for the user with the specified RFID
+    user = database.session.query(database.Usuarios).filter_by(rfid=rfid).one()
 
-
+    # Delete the user from the database
+    database.session.delete(user)
+    database.session.commit()
+    response = make_response('User with RFID ' + rfid + ' deleted successfully', 200)
+    return response
 
 
 
@@ -167,9 +177,11 @@ def access_log():
 @app.route('/api/verificar_acceso')
 def verificar_acceso():
     # Get the "puerta" and "rfid" parameters from the request
-    puerta = request.args.get('puerta')
+    puerta = request.args.get('nodo')
     if puerta:
         puerta = int(puerta)
+    else:
+        return "Invalid request", 500
     rfid = request.args.get('rfid')
 
     # Find the user with the given RFID in the "Usuarios" table

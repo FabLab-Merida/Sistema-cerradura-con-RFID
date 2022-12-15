@@ -2,7 +2,6 @@
 
 {% block content %}
 
-
 <div class="container mt-4">
     <h1>List of Users</h1>
 
@@ -20,6 +19,7 @@
             <td>{{ user.apellidos }}</td>
             <td>
                 <a href="{{ url_for('edit_user', rfid=user.rfid) }}" class="btn btn-primary">Edit</a>
+                <button onclick="deleteUser({{ user.rfid }})" class="btn btn-danger">Delete</button>
             </td>
         </tr>
         {% endfor %}
@@ -27,4 +27,8 @@
 
     <a href="{{ url_for('add_user') }}" class="btn btn-primary mt-4">Add User</a>
 </div>
+
+<!-- Add a JavaScript function for the delete button -->
+
+
 {% endblock %}
