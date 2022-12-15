@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1>Access Log</h1>
+
+        <table class="table mt-4">
+            <tr>
+                <th>User RFID</th>
+                <th>User Name</th>
+                <th>Door ID</th>
+                <th>Access Time</th>
+            </tr>
+            {% for entry in access_logs %}
+                <tr>
+                    <td>{{ entry.rfid_usuario }}</td>
+                    <td>{{ entry.nombre }}</td>
+                    <td>{{ entry.id_puerta }}</td>
+                    <td>{{ entry.fecha_acceso }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        {# Add the pagination links #}
+        <div id="pagination" class="mt-4">
+        </div>
+
+        {# Add the JavaScript code that calculates the number of pages and creates the pagination links #}
+        <script>
+            // Calculate the total number of pages
+            var totalPages = Math.ceil(totalEntries / limit);
+
+            // Create the pagination links
+            for (var i = 0; i < totalPages; i++) {
+                var pageNumber = i + 1;
+                var offset = i * limit;
+                var link = '<a href="{{ url_for('access_log') }}?offset=' + offset + '&limit=' + limit + '">' + pageNumber + '</a>';
+                document.getElementById('pagination').innerHTML += link;
+            }
+        </script>
+    </div>
+{% endblock %}
+

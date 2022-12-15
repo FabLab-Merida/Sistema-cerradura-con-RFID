@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h1>Add User</h1>
+
+    <form action="{{ url_for('api_add_user') }}" method="post">
+
+        <div class="form-group">
+            <label for="rfid">RFID</label>
+            <input type="text" name="rfid" id="rfid" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label for="nombre">Name</label>
+            <input type="text" name="nombre" id="nombre" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label for="apellidos">Last Name</label>
+            <input type="text" name="apellidos" id="apellidos" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label>Doors</label>
+            {% for door in doors %}
+            <div class="form-check">
+                <input type="checkbox" name="doors" id="door-{{ door.id_puerta }}" value="{{ door.id_puerta }}" class="form-check-input">
+                <label for="door-{{ door.id_puerta }}" class="form-check-label">{{ door.nombre }}</label>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</div>
+{% endblock %}

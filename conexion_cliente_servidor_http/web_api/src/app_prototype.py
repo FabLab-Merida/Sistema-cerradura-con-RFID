@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import request
 
-from database import Database
+from src.database import Database
 
 app = Flask(__name__)
 db = Database()
