@@ -44,7 +44,7 @@ void mostrarByteArray(byte* buffer, byte bufferSize) {
 
 MFRC522 mfrc522 (RFID_PIN_SPI, RFID_PIN_RESET);
 MFRC522::MIFARE_Key clave = {keyByte: {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
-
+bool registrar = false;
 
 void setup()
 {
@@ -101,6 +101,20 @@ void loop()
     mostrarByteArray(mfrc522.uid.uidByte, mfrc522.uid.size);  // Motrar el UID
     String strUID1 = String(mfrc522.uid.uidByte[0]) + "-" + String(mfrc522.uid.uidByte[1]) + "-" + String(mfrc522.uid.uidByte[2]) + "-" + String(mfrc522.uid.uidByte[3]);
     Serial.println(strUID1);
+
+    if (strUID1 == "HARDCODED_STRING") {
+
+        registrar = true;
+        return
+    }
+    if (registrar) {
+        // If strUID1 matches the hardcoded string, call the registrar() function
+        // with the given strUID1 and default values for the other parameters
+        registrar = false;
+        registrar(strUID1, "unknown", "unknown", ["0"]);
+    }
+
+
     if (autenticar(strUID1)) {
       digitalWrite(LED_PIN_PERMITIDO,HIGH);
 
@@ -172,3 +186,27 @@ bool autenticar (String privateKey) {
     return acceso_concedido;
 }
 
+// This function sends an HTTP POST request to the /api/add_user route
+// with the given strUID, nombre, apellidos and puertas parameters
+void registrar(String strUID, String nombre, String apellidos, String[] puertas) {
+    // Build the URL for the POST request
+    String url = "http://" + host + "/api/add_user";
+
+    // Create an instance of the HTTPClient class
+    HTTPClient http;
+
+    // Create the data to be sent in the POST request
+    String data = "rfid=" + strUID + "&nombre=" + nombre + "&apellidos=" + apellidos + "&puertas=" + puertas.join(",");
+    Serial.println(data);
+
+    // Send the POST request to the /api/add_user route
+    int httpCode = http.POST(url, data);
+    if (httpCode != 200) {
+        // Handle the error if the request failed
+        Serial.println("Error sending POST request");
+    } else {
+        // Parse the response from the server
+        String response = http.getString();
+        Serial.println(response);
+    }
+}
