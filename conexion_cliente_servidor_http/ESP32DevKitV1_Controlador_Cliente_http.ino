@@ -14,18 +14,19 @@
 #define LED_PIN_LISTO 14
 #define LED_PIN_DENEGADO 12
 #define LED_PIN_PERMITIDO 13
+#define LED_PIN_BUZZER 27
+
+#define MASTER_KEY "26-196-179-180"
 
 
+const char* ssid     = "FABLAB";
+const char* password = "FabLabMerida2020";
 
-
-//const char* ssid     = "FABLAB";
-//const char* password = "FabLabMerida2020";
-
-const char* ssid     = "REDACTED";
-const char* password = "REDACTED";
+//const char* ssid     = "REDACTED";
+//const char* password = "REDACTED";
 
 //const char* host = "158.49.92.110";
-const char* host = "192.168.0.135"; // IP local del servidor
+const char* host = "158.49.92.22"; // IP local del servidor
 const char* nodopuerta   = "1";
 /* Inicializaciones de clase */
 
@@ -44,7 +45,7 @@ void mostrarByteArray(byte* buffer, byte bufferSize) {
 
 MFRC522 mfrc522 (RFID_PIN_SPI, RFID_PIN_RESET);
 MFRC522::MIFARE_Key clave = {keyByte: {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
-bool registrar = false;
+bool hacer_registro = false;
 
 void setup()
 {
@@ -102,26 +103,35 @@ void loop()
     String strUID1 = String(mfrc522.uid.uidByte[0]) + "-" + String(mfrc522.uid.uidByte[1]) + "-" + String(mfrc522.uid.uidByte[2]) + "-" + String(mfrc522.uid.uidByte[3]);
     Serial.println(strUID1);
 
-    if (strUID1 == "HARDCODED_STRING") {
+    if (strUID1 == MASTER_KEY) {
+        digitalWrite(LED_PIN_BUZZER,HIGH);
+        hacer_registro = true;
+        delay(200);
+        digitalWrite(LED_PIN_BUZZER,LOW);
+        delay(200);
+        digitalWrite(LED_PIN_BUZZER,HIGH);
+        delay(200);
+        digitalWrite(LED_PIN_BUZZER,LOW);
 
-        registrar = true;
-        return
+        return;
     }
-    if (registrar) {
+    if (hacer_registro) {
         // If strUID1 matches the hardcoded string, call the registrar() function
         // with the given strUID1 and default values for the other parameters
-        registrar = false;
-        registrar(strUID1, "unknown", "unknown", ["0"]);
+        hacer_registro = false;
+        registrar(strUID1, "unknown", "unknown", "0");
     }
 
 
     if (autenticar(strUID1)) {
+      digitalWrite(LED_PIN_BUZZER,HIGH);
       digitalWrite(LED_PIN_PERMITIDO,HIGH);
 
     } else {
       digitalWrite(LED_PIN_DENEGADO,HIGH);
     }
     delay(1500);
+    digitalWrite(LED_PIN_BUZZER,LOW);
     digitalWrite(LED_PIN_PERMITIDO,LOW);
     digitalWrite(LED_PIN_DENEGADO,LOW);
     digitalWrite(LED_PIN_LISTO,HIGH);
@@ -137,7 +147,7 @@ bool autenticar (String privateKey) {
     // We now create a URI for the request
     String url = "http://";
     url += host;
-    url += "/";
+    url += "/api/verificar_acceso";
     url += "?nodo=";
     url += "1";
     url += "&rfid=";
@@ -188,19 +198,25 @@ bool autenticar (String privateKey) {
 
 // This function sends an HTTP POST request to the /api/add_user route
 // with the given strUID, nombre, apellidos and puertas parameters
-void registrar(String strUID, String nombre, String apellidos, String[] puertas) {
+void registrar(String strUID, String nombre, String apellidos, String puertas) {
     // Build the URL for the POST request
-    String url = "http://" + host + "/api/add_user";
+    String url = "http://";
+    url += host;
+    url += "/api/add_user";
+
 
     // Create an instance of the HTTPClient class
     HTTPClient http;
+    http.begin(url);
 
     // Create the data to be sent in the POST request
-    String data = "rfid=" + strUID + "&nombre=" + nombre + "&apellidos=" + apellidos + "&puertas=" + puertas.join(",");
+    String data = "rfid=" + strUID + "&nombre=" + nombre + "&apellidos=" + apellidos + "&puertas=1";
     Serial.println(data);
-
+    http.begin(url);
     // Send the POST request to the /api/add_user route
-    int httpCode = http.POST(url, data);
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded"); // Set the request header
+    //http.addBody(data); // Set the request body
+    int httpCode = http.POST(data);
     if (httpCode != 200) {
         // Handle the error if the request failed
         Serial.println("Error sending POST request");
