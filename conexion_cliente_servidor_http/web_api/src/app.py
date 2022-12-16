@@ -1,9 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, request, make_response
 
-import database
-
+import src.database as database
+logger = logging.getLogger()
 app = Flask(__name__)
-# from database import Session, Usuarios, Doors
 from src import database as db
 @app.route('/')
 def main_page():
@@ -98,10 +97,11 @@ def api_edit_user():
     return redirect(url_for('main_page'))
 
 @app.route('/api/delete_user', methods=['POST'])
-def delete_user(rfid):
+def delete_user():
     # Get the RFID from the request body
-    rfid = request.form.get('rfid')
-
+    rfid = request.get_json()['rfid']
+    if not rfid:
+        return "Missing rfid in post",400
     # Query the database for the user with the specified RFID
     user = database.session.query(database.Usuarios).filter_by(rfid=rfid).one()
 

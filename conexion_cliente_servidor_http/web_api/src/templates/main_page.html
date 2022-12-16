@@ -108,12 +108,17 @@
     }
 
 function deleteUser(rfid) {
-    if (confirm('Are you sure you want to delete this user?')) {
+    if (confirm('Are you sure you want to delete this user?\nUser rfid:'+rfid)) {
         // Send a POST request to the /users/<rfid> endpoint with the RFID as a parameter in the body
-        fetch('/api/delete_user/', {
+
+        fetch('/api/delete_user', {
             method: 'POST',
-            body: 'rfid=' + rfid
-        }).then(function(response) {
+            body: JSON.stringify({rfid: rfid}),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function(response) {
             if (response.ok) {
                 // If the response is successful, refresh the page
                 window.location.reload();
@@ -121,7 +126,8 @@ function deleteUser(rfid) {
                 // Otherwise, display an error message
                 alert('Error deleting user with RFID: ' + rfid);
             }
-        });
+        })
+        .catch(error => { console.error(error);alert("Error: " + error)});
     }
 }
 
