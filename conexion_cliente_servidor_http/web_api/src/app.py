@@ -1,15 +1,13 @@
-from flask import Flask, render_template, redirect, url_for, request, make_response, logging
-from Crypto.Cipher import AES
-from binascii import hexlify, unhexlify
-
-import src.database as database
+from flask import Flask, render_template, redirect, url_for, request, make_response
+import datetime
+import random
 from src import database as db
-
-#128 bits AES key
-key = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f'
-
-logger = logging.getLogger()
+import src.database as database
+#logger = logging.getLogger()
 app = Flask(__name__)
+
+diccionario_puertas={}
+
 
 @app.route('/')
 def main_page():
@@ -41,15 +39,24 @@ def add_user():
 @app.route('/api/add_user', methods=['POST'])
 def api_add_user():
     # Get the data from the form
-    ciphertext = request.form['rfid']
+    mensajeEncriptado = request.form['rfid']
     nombre = request.form['nombre']
     apellidos = request.form['apellidos']
     doors = request.form.getlist('doors')
 
-    ciphertext_bytes = unhexlify(ciphertext)  # Initialize AES object in ECB mode
-    aes = AES.new(key, AES.MODE_ECB)  # decrypt the message
-    plaintext_bytes = aes.decrypt(ciphertext_bytes)  # Convert decrypted message to string and remove non-printable characters
-    rfid = plaintext_bytes.decode().strip()
+    # Obtiene la hora actual
+    hora = datetime.datetime.now().hour
+
+    # Establece la semilla del generador de números aleatorios utilizando la hora actual
+    random.seed(hora)
+
+    # Desencripta el mensaje utilizando la hora actual como clave
+    rfid = ""
+    for c in mensajeEncriptado:
+        k = random.randint(0, 255)  # Genera un número aleatorio entre 0 y 255
+        #cDesencriptado = (ord(c) ^ k)  # Desencripta el carácter utilizando la clave
+        cDesencriptado = chr(ord(c) ^ k)  # Convierte el carácter
+        rfid += cDesencriptado
 
 
     # Create a new user with the data from the form
@@ -195,13 +202,7 @@ def verificar_acceso():
         puerta = int(puerta)
     else:
         return "Invalid request", 500
-    ciphertext = request.args.get('rfid')
-
-    ciphertext_bytes = unhexlify(ciphertext)  # Initialize AES object in ECB mode
-    aes = AES.new(key, AES.MODE_ECB)  # decrypt the message
-    plaintext_bytes = aes.decrypt(
-        ciphertext_bytes)  # Convert decrypted message to string and remove non-printable characters
-    rfid = plaintext_bytes.decode().strip()
+    rfid = request.args.get('rfid')
 
     # Find the user with the given RFID in the "Usuarios" table
     user = db.session.query(db.Usuarios).filter_by(rfid=rfid).first()
@@ -219,9 +220,29 @@ def verificar_acceso():
     # Add the access log to the database and commit the changes
     db.session.add(access_log)
     db.session.commit()
+    numero_random = random.Random()
+    diccionario_puertas[str(puerta)] = numero_random
 
     # Return a success or error message
     if acceso_concedido:
-        return "Acceso concedido", 200
+        return numero_random, 200
     else:
         return "Acceso denegado", 401
+
+@app.route('/api/inizializar_puerta')
+def verificar_acceso():
+    puerta = request.args.get('nodo')
+    if puerta:
+        puerta = int(puerta)
+    else:
+        return "Invalid request", 500
+    # Find the user with the given RFID in the "Usuarios" table
+    puerta = db.session.query(db.Doors).filter_by(id=puerta).first()
+    if not puerta:
+        return "Error autentificacion", 401
+    numero_random =  random.Random()
+    diccionario_puertas[str(puerta)] =numero_random
+    return str(numero_random), 200
+
+
+en arduino hacer un http.getString() en el setup, tenemos el código y lo utilizaremos para encriptar y desencriptar
