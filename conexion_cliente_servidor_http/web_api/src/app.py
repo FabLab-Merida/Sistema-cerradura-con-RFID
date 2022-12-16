@@ -1,13 +1,32 @@
-from flask import Flask, render_template, redirect, url_for, request, make_response
-import datetime
 import random
-from src import database as db
+
+from flask import Flask, render_template, redirect, url_for, request, make_response
+
 import src.database as database
-#logger = logging.getLogger()
 app = Flask(__name__)
+from src import database as db
 
-diccionario_puertas={}
 
+diccionario_puertas = {}
+
+
+def actualizar_codigo_puerta(codigo_puerta: int):
+    """
+    Genera un codigo de cifrado con el que el cliente cifrará el codigo rfid la proxima vez que se comunique.
+    Este codigo será usado por el servidor para descifrar el mensaje y así disponer del codigo rfid
+    :param codigo_puerta:
+    :return: El nuevo codigo
+    """
+    codigo_puerta = int(codigo_puerta)
+    puerta = database.session.query(db.Doors).filter(db.Doors.id_puerta == codigo_puerta).first()
+
+    if not puerta:
+        return
+    else:
+        numero_random = random.random()
+        puerta.codigo = numero_random
+    database.session.commit()
+    return numero_random
 
 @app.route('/')
 def main_page():
@@ -39,25 +58,10 @@ def add_user():
 @app.route('/api/add_user', methods=['POST'])
 def api_add_user():
     # Get the data from the form
-    mensajeEncriptado = request.form['rfid']
+    rfid = request.form['rfid']
     nombre = request.form['nombre']
     apellidos = request.form['apellidos']
     doors = request.form.getlist('doors')
-
-    # Obtiene la hora actual
-    hora = datetime.datetime.now().hour
-
-    # Establece la semilla del generador de números aleatorios utilizando la hora actual
-    random.seed(hora)
-
-    # Desencripta el mensaje utilizando la hora actual como clave
-    rfid = ""
-    for c in mensajeEncriptado:
-        k = random.randint(0, 255)  # Genera un número aleatorio entre 0 y 255
-        #cDesencriptado = (ord(c) ^ k)  # Desencripta el carácter utilizando la clave
-        cDesencriptado = chr(ord(c) ^ k)  # Convierte el carácter
-        rfid += cDesencriptado
-
 
     # Create a new user with the data from the form
     new_user = db.Usuarios(
@@ -196,18 +200,29 @@ def access_log():
 
 @app.route('/api/verificar_acceso')
 def verificar_acceso():
+    """
+    Cuando un cliente quiere saber si el usuario tiene acceso o no a la puerta, envia una peticion.
+    :return:
+    """
+
     # Get the "puerta" and "rfid" parameters from the request
     puerta = request.args.get('nodo')
     if puerta:
         puerta = int(puerta)
     else:
         return "Invalid request", 500
-    rfid = request.args.get('rfid')
 
+    # Obtenemos los datos de la puerta
+    puerta: db.Doors = db.session.query(db.Doors).filter_by(id_puerta=puerta).first()
+    # Obtenemos el codigo actual de esa puerta
+    codigo_descifrado: float = puerta.codigo
+
+    # Buscamos el usuario que tenga el rfid
+    rfid = request.args.get('rfid')
     # Find the user with the given RFID in the "Usuarios" table
     user = db.session.query(db.Usuarios).filter_by(rfid=rfid).first()
 
-    # If the user was not found, return an error message
+    # Si el usuario no se ha encontrado devuelve error
     if user is None:
         return "Error de la base de datos. Usuario no encontrado", 500
 
@@ -220,12 +235,11 @@ def verificar_acceso():
     # Add the access log to the database and commit the changes
     db.session.add(access_log)
     db.session.commit()
-    numero_random = random.random()
-    diccionario_puertas[str(puerta)] = numero_random
+    nuevo_codigo = actualizar_codigo_puerta(puerta)
 
     # Return a success or error message
     if acceso_concedido:
-        return numero_random, 200
+        return nuevo_codigo, 200
     else:
         return "Acceso denegado", 401
 
@@ -240,9 +254,9 @@ def verificar_acceso():
     puerta = db.session.query(db.Doors).filter_by(id=puerta).first()
     if not puerta:
         return "Error autentificacion", 401
-    numero_random =  random.random()
-    diccionario_puertas[str(puerta)] =numero_random
-    return str(numero_random), 200
+    # Create a new code.
+    nuevo_codigo = actualizar_codigo_puerta(puerta)
+
+    return str(nuevo_codigo), 200
 
 
-en arduino hacer un http.getString() en el setup, tenemos el código y lo utilizaremos para encriptar y desencriptar
