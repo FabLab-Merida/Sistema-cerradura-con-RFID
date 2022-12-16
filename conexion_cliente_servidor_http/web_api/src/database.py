@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, DateTime, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, DateTime, Boolean, Float
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 # Import the scoped_session class
 from sqlalchemy.orm import scoped_session
@@ -15,12 +15,15 @@ doors_usuarios = Table('doors_usuarios', Base.metadata,
     Column('usuario_rfid', String, ForeignKey('usuarios.rfid'))
 )
 
+
 class Doors(Base):
     __tablename__ = 'doors'
 
     id_puerta = Column(Integer, primary_key=True)
     nombre = Column(String)
     usuarios = relationship('Usuarios', secondary=doors_usuarios, back_populates='puertas')
+    codigo = Column(Float)
+
 
 class Usuarios(Base):
     __tablename__ = 'usuarios'
@@ -29,6 +32,7 @@ class Usuarios(Base):
     nombre = Column(String)
     apellidos = Column(String)
     puertas = relationship('Doors', secondary=doors_usuarios, back_populates='usuarios')
+
 
 class AccessLog(Base):
     __tablename__ = 'access_log'

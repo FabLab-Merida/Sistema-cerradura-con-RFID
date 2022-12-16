@@ -1,9 +1,33 @@
+import random
+
 from flask import Flask, render_template, redirect, url_for, request, make_response
 
 import src.database as database
-logger = logging.getLogger()
 app = Flask(__name__)
 from src import database as db
+
+
+diccionario_puertas = {}
+
+
+def actualizar_codigo_puerta(codigo_puerta: int):
+    """
+    Genera un codigo de cifrado con el que el cliente cifrará el codigo rfid la proxima vez que se comunique.
+    Este codigo será usado por el servidor para descifrar el mensaje y así disponer del codigo rfid
+    :param codigo_puerta:
+    :return: El nuevo codigo
+    """
+    codigo_puerta = int(codigo_puerta)
+    puerta = database.session.query(db.Doors).filter(db.Doors.id_puerta == codigo_puerta).first()
+
+    if not puerta:
+        return
+    else:
+        numero_random = random.random()
+        puerta.codigo = numero_random
+    database.session.commit()
+    return numero_random
+
 @app.route('/')
 def main_page():
     # Query for all users in the database
@@ -176,18 +200,29 @@ def access_log():
 
 @app.route('/api/verificar_acceso')
 def verificar_acceso():
+    """
+    Cuando un cliente quiere saber si el usuario tiene acceso o no a la puerta, envia una peticion.
+    :return:
+    """
+
     # Get the "puerta" and "rfid" parameters from the request
     puerta = request.args.get('nodo')
     if puerta:
         puerta = int(puerta)
     else:
         return "Invalid request", 500
-    rfid = request.args.get('rfid')
 
+    # Obtenemos los datos de la puerta
+    puerta: db.Doors = db.session.query(db.Doors).filter_by(id_puerta=puerta).first()
+    # Obtenemos el codigo actual de esa puerta
+    codigo_descifrado: float = puerta.codigo
+
+    # Buscamos el usuario que tenga el rfid
+    rfid = request.args.get('rfid')
     # Find the user with the given RFID in the "Usuarios" table
     user = db.session.query(db.Usuarios).filter_by(rfid=rfid).first()
 
-    # If the user was not found, return an error message
+    # Si el usuario no se ha encontrado devuelve error
     if user is None:
         return "Error de la base de datos. Usuario no encontrado", 500
 
@@ -200,9 +235,28 @@ def verificar_acceso():
     # Add the access log to the database and commit the changes
     db.session.add(access_log)
     db.session.commit()
+    nuevo_codigo = actualizar_codigo_puerta(puerta)
 
     # Return a success or error message
     if acceso_concedido:
-        return "Acceso concedido", 200
+        return nuevo_codigo, 200
     else:
         return "Acceso denegado", 401
+
+@app.route('/api/inizializar_puerta')
+def verificar_acceso():
+    puerta = request.args.get('nodo')
+    if puerta:
+        puerta = int(puerta)
+    else:
+        return "Invalid request", 500
+    # Find the user with the given RFID in the "Usuarios" table
+    puerta = db.session.query(db.Doors).filter_by(id=puerta).first()
+    if not puerta:
+        return "Error autentificacion", 401
+    # Create a new code.
+    nuevo_codigo = actualizar_codigo_puerta(puerta)
+
+    return str(nuevo_codigo), 200
+
+
