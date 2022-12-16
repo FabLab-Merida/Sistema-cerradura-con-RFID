@@ -220,7 +220,7 @@ def verificar_acceso():
     # Add the access log to the database and commit the changes
     db.session.add(access_log)
     db.session.commit()
-    numero_random = random.Random()
+    numero_random = random.random()
     diccionario_puertas[str(puerta)] = numero_random
 
     # Return a success or error message
@@ -240,7 +240,7 @@ def verificar_acceso():
     puerta = db.session.query(db.Doors).filter_by(id=puerta).first()
     if not puerta:
         return "Error autentificacion", 401
-    numero_random =  random.Random()
+    numero_random =  random.random()
     diccionario_puertas[str(puerta)] =numero_random
     return str(numero_random), 200
 
