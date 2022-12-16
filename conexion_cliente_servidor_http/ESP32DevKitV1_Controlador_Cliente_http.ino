@@ -26,7 +26,7 @@ const char* password = "FabLabMerida2020";
 //const char* password = "REDACTED";
 
 //const char* host = "158.49.92.110";
-const char* host = "158.49.92.22"; // IP local del servidor
+const char* host = "158.49.92.228"; // IP local del servidor
 const char* nodopuerta   = "1";
 /* Inicializaciones de clase */
 
@@ -57,6 +57,7 @@ void setup()
     pinMode(LED_PIN_LISTO, OUTPUT);
     pinMode(LED_PIN_DENEGADO , OUTPUT);
     pinMode(LED_PIN_PERMITIDO, OUTPUT);
+    pinMode(LED_PIN_BUZZER,OUTPUT);
 
     // We start by connecting to a WiFi network
 
@@ -106,11 +107,11 @@ void loop()
     if (strUID1 == MASTER_KEY) {
         digitalWrite(LED_PIN_BUZZER,HIGH);
         hacer_registro = true;
-        delay(200);
+        delay(400);
         digitalWrite(LED_PIN_BUZZER,LOW);
-        delay(200);
+        delay(400);
         digitalWrite(LED_PIN_BUZZER,HIGH);
-        delay(200);
+        delay(400);
         digitalWrite(LED_PIN_BUZZER,LOW);
 
         return;
