@@ -1,9 +1,16 @@
-from flask import Flask, render_template, redirect, url_for, request, make_response
+from flask import Flask, render_template, redirect, url_for, request, make_response, logging
+from Crypto.Cipher import AES
+from binascii import hexlify, unhexlify
 
 import src.database as database
+from src import database as db
+
+#128 bits AES key
+key = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f'
+
 logger = logging.getLogger()
 app = Flask(__name__)
-from src import database as db
+
 @app.route('/')
 def main_page():
     # Query for all users in the database
@@ -34,10 +41,16 @@ def add_user():
 @app.route('/api/add_user', methods=['POST'])
 def api_add_user():
     # Get the data from the form
-    rfid = request.form['rfid']
+    ciphertext = request.form['rfid']
     nombre = request.form['nombre']
     apellidos = request.form['apellidos']
     doors = request.form.getlist('doors')
+
+    ciphertext_bytes = unhexlify(ciphertext)  # Initialize AES object in ECB mode
+    aes = AES.new(key, AES.MODE_ECB)  # decrypt the message
+    plaintext_bytes = aes.decrypt(ciphertext_bytes)  # Convert decrypted message to string and remove non-printable characters
+    rfid = plaintext_bytes.decode().strip()
+
 
     # Create a new user with the data from the form
     new_user = db.Usuarios(
@@ -182,7 +195,13 @@ def verificar_acceso():
         puerta = int(puerta)
     else:
         return "Invalid request", 500
-    rfid = request.args.get('rfid')
+    ciphertext = request.args.get('rfid')
+
+    ciphertext_bytes = unhexlify(ciphertext)  # Initialize AES object in ECB mode
+    aes = AES.new(key, AES.MODE_ECB)  # decrypt the message
+    plaintext_bytes = aes.decrypt(
+        ciphertext_bytes)  # Convert decrypted message to string and remove non-printable characters
+    rfid = plaintext_bytes.decode().strip()
 
     # Find the user with the given RFID in the "Usuarios" table
     user = db.session.query(db.Usuarios).filter_by(rfid=rfid).first()

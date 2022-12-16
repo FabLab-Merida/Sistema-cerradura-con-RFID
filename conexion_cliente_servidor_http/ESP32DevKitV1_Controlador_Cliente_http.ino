@@ -19,14 +19,14 @@
 #define MASTER_KEY "26-196-179-180"
 
 
-const char* ssid     = "FABLAB";
-const char* password = "FabLabMerida2020";
+const char* ssid     = "HolaFibraB6A2";
+const char* password = "JDaS4q4d";
 
 //const char* ssid     = "REDACTED";
 //const char* password = "REDACTED";
 
 //const char* host = "158.49.92.110";
-const char* host = "158.49.92.228"; // IP local del servidor
+const char* host = "192.168.18.92"; // IP local del servidor
 const char* nodopuerta   = "1";
 /* Inicializaciones de clase */
 
@@ -140,6 +140,8 @@ void loop()
 bool autenticar (String privateKey) {
       Serial.print("connecting to ");
     Serial.println(host);
+
+
 
     // Use WiFiClient class to create TCP connections
     HTTPClient http;
