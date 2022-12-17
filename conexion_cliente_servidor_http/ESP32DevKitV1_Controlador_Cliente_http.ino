@@ -19,8 +19,8 @@
 #define MASTER_KEY "26-196-179-180"
 
 
-const char* ssid     = "HolaFibraB6A2";
-const char* password = "JDaS4q4d";
+const char* ssid     = "REDACTED";
+const char* password = "REDACTED";
 
 //const char* ssid     = "REDACTED";
 //const char* password = "REDACTED";
