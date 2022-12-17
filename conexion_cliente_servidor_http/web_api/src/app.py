@@ -21,7 +21,7 @@ def actualizar_codigo_puerta(codigo_puerta: int):
     puerta = database.session.query(db.Doors).filter(db.Doors.id_puerta == codigo_puerta).first()
 
     if not puerta:
-        return
+        return "Invalid request", 400
     else:
         numero_random = random.random()
         puerta.codigo = numero_random
@@ -62,6 +62,8 @@ def api_add_user():
     nombre = request.form['nombre']
     apellidos = request.form['apellidos']
     doors = request.form.getlist('doors')
+    if any(value == "" or value is None for value in [rfid, nombre, apellidos, doors]):
+        return "Invalid request", 400
 
     # Create a new user with the data from the form
     new_user = db.Usuarios(
@@ -125,7 +127,7 @@ def delete_user():
     # Get the RFID from the request body
     rfid = request.get_json()['rfid']
     if not rfid:
-        return "Missing rfid in post",400
+        return "Missing rfid in post", 400
     # Query the database for the user with the specified RFID
     user = database.session.query(database.Usuarios).filter_by(rfid=rfid).one()
 
@@ -210,7 +212,7 @@ def verificar_acceso():
     if puerta:
         puerta = int(puerta)
     else:
-        return "Invalid request", 500
+        return "Invalid request", 400
 
     # Obtenemos los datos de la puerta
     puerta: db.Doors = db.session.query(db.Doors).filter_by(id_puerta=puerta).first()
@@ -263,11 +265,11 @@ def inicializar_puerta():
     if puerta:
         puerta = int(puerta)
     else:
-        return "Invalid request", 500
+        return "Invalid request", 400
     # Find the user with the given RFID in the "Usuarios" table
     puerta = db.session.query(db.Doors).filter_by(id_puerta=puerta).first()
     if not puerta:
-        return "Error autentificacion", 401
+        return "Error autentificacion", 403
     # Create a new code.
     nuevo_codigo = actualizar_codigo_puerta(puerta)
 
