@@ -17,7 +17,6 @@ def actualizar_codigo_puerta(codigo_puerta: int):
     :param codigo_puerta:
     :return: El nuevo codigo
     """
-    codigo_puerta = int(codigo_puerta)
     puerta = database.session.query(db.Doors).filter(db.Doors.id_puerta == codigo_puerta).first()
 
     if not puerta:
@@ -222,17 +221,19 @@ def verificar_acceso():
     # Buscamos el usuario que tenga el rfid
     encrypted_string = request.args.get('rfid')
 
-    encrypted_list = list(encrypted_string)
+    # Separa el mensaje cifrado en una lista de grupos de elementos separados por el guion
+    groups = encrypted_string.split("-")
 
-    # Recorre cada carácter de la lista y lo descifra utilizando la clave
-    decrypted_list = []
-    for char in encrypted_list:
-        decrypted_char = chr(ord(char) / codigo_descifrado)
-        decrypted_list.append(decrypted_char)
+    # Convierte la clave a float y luego a entero
+    key = (int)(codigo_descifrado * 10000)
 
-    # Convierte la lista de caracteres descifrados en un string
-    rfid = "".join(decrypted_list)
+    # Recorre cada grupo de elementos y lo descifra dividiéndolo por la clave
+    for i in range(len(groups)):
+        groups[i] = str(int(int(groups[i]) / key))
 
+    # Une los grupos de elementos descifrados en un string separados por el guion
+    rfid = "-".join(groups)
+    print("RFID descifrado: "+rfid)
 
 
     # Find the user with the given RFID in the "Usuarios" table
@@ -263,15 +264,15 @@ def verificar_acceso():
 def inicializar_puerta():
     puerta = request.args.get('nodo')
     if puerta:
-        puerta = int(puerta)
+        num_puerta = int(puerta)
     else:
         return "Invalid request", 400
     # Find the user with the given RFID in the "Usuarios" table
-    puerta = db.session.query(db.Doors).filter_by(id_puerta=puerta).first()
+    puerta = db.session.query(db.Doors).filter_by(id_puerta=num_puerta).first()
     if not puerta:
         return "Error autentificacion", 403
     # Create a new code.
-    nuevo_codigo = actualizar_codigo_puerta(puerta)
+    nuevo_codigo = actualizar_codigo_puerta(num_puerta)
 
     return str(nuevo_codigo), 200
 

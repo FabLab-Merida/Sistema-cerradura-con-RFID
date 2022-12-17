@@ -183,19 +183,20 @@ bool autenticar (String privateKey) {
     HTTPClient http;
     const int httpPort = 80;
 
-  // Convierte el string en un array de caracteres
-  char strArray[16];
-  privateKey.toCharArray(strArray, 16);
+  String* groups = split(privateKey, '-');
 
-  float num = atof(codigo.c_str());//convertimos el código a float
+  // Convierte la clave a float y luego a entero
+  int key = (int)(atof(codigo.c_str()) * 10000);
 
-  // Recorre cada carácter del array y lo cifra utilizando la clave
-  for (int i = 0; i < privateKey.length(); i++) {
-    strArray[i] = strArray[i] * num;
+  // Recorre cada grupo de elementos y lo cifra multiplicándolo por la clave
+  for (int i = 0; i < 4; i++) {
+    int group = groups[i].toInt();
+    group = group * key;
+    groups[i] = String(group);
   }
 
-  // Convierte el array de caracteres cifrados en un string
-  String encryptedString = String(strArray);
+// Une los grupos de elementos cifrados en un string separados por el guion
+String encryptedString = join(groups, '-');
 
 
 
@@ -280,4 +281,50 @@ void registrar(String strUID, String nombre, String apellidos, String puertas) {
         String response = http.getString();
         Serial.println(response);
     }
+}
+
+String* split(String str, char delimiter) {
+  int count = 0;
+  int strLength = str.length();
+
+  // Calcula el número de substrings que se obtendrán al separar el string por el delimitador
+  for (int i = 0; i < strLength; i++) {
+    if (str[i] == delimiter) {
+      count++;
+    }
+  }
+
+  // Crea un array de strings con el tamaño necesario
+  String* result = new String[count + 1];
+
+  int j = 0;
+  int lastIndex = -1;
+
+  // Recorre el string y separa las substrings utilizando el delimitador
+  for (int i = 0; i < strLength; i++) {
+    if (str[i] == delimiter) {
+      result[j] = str.substring(lastIndex + 1, i);
+      j++;
+      lastIndex = i;
+    }
+  }
+
+  // Añade la última substring al array
+  result[j] = str.substring(lastIndex + 1, strLength);
+
+  return result;
+}
+
+String join(String* strArray, char separator) {
+  String result = "";
+
+  // Recorre el array de strings y añade cada uno de ellos al resultado separándolos por el separador
+  for (int i = 0; i < sizeof(strArray); i++) {
+    result += strArray[i];
+    if (i < sizeof(strArray) - 1) {
+      result += separator;
+    }
+  }
+
+  return result;
 }
