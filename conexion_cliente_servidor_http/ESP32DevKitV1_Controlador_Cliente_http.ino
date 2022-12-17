@@ -28,6 +28,11 @@ const char* password = "JDaS4q4d";
 //const char* host = "158.49.92.110";
 const char* host = "192.168.18.92"; // IP local del servidor
 const char* nodopuerta   = "1";
+String codigo = ""; //Código para cifrar la comunicacion
+
+
+
+
 /* Inicializaciones de clase */
 
 /**
@@ -74,12 +79,15 @@ void setup()
         Serial.print(".");
     }
 
+
     Serial.println("");
     Serial.println("WiFi connected");
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
     Serial.println("Setup Finalizado");
     digitalWrite(LED_PIN_LISTO,HIGH);
+
+    inicializa_puerta();
 
 }
 
@@ -137,15 +145,59 @@ void loop()
     digitalWrite(LED_PIN_DENEGADO,LOW);
     digitalWrite(LED_PIN_LISTO,HIGH);
 }
+
+//Método para obtener el primer código para realizar el cifrado
+void inicializa_puerta() {
+  HTTPClient http;
+    const int httpPort = 80;
+
+    // We now create a URI for the request
+    String url = "http://";
+    url += host;
+    url += "/api/inizializar_puerta";
+    url += "?nodo=";
+    url += "1";
+    http.begin(url);
+
+    Serial.print("Requesting URL: ");
+    Serial.println(url);
+
+    // This will send the request to the server
+    Serial.println(String("GET ") + url + " HTTP/1.1\r\n" +
+                 "Host: " + host + "\r\n" +
+                 "Connection: close\r\n\r\n");
+
+    int httpCode = http.GET();
+    codigo = http.getString();
+}
+
+
+
+
 bool autenticar (String privateKey) {
       Serial.print("connecting to ");
     Serial.println(host);
 
 
-
     // Use WiFiClient class to create TCP connections
     HTTPClient http;
     const int httpPort = 80;
+
+  // Convierte el string en un array de caracteres
+  char strArray[16];
+  privateKey.toCharArray(strArray, 16);
+
+  float num = atof(codigo.c_str());//convertimos el código a float
+
+  // Recorre cada carácter del array y lo cifra utilizando la clave
+  for (int i = 0; i < privateKey.length(); i++) {
+    strArray[i] = strArray[i] * num;
+  }
+
+  // Convierte el array de caracteres cifrados en un string
+  String encryptedString = String(strArray);
+
+
 
     // We now create a URI for the request
     String url = "http://";
@@ -154,7 +206,7 @@ bool autenticar (String privateKey) {
     url += "?nodo=";
     url += "1";
     url += "&rfid=";
-    url += privateKey;
+    url += encryptedString;
     http.begin(url);
 
     Serial.print("Requesting URL: ");
@@ -178,7 +230,7 @@ bool autenticar (String privateKey) {
 
             // file found at server
             if(httpCode == HTTP_CODE_OK) {
-                String payload = http.getString();
+                codigo = http.getString(); //obtenemos el nuevo código
                 Serial.println("Acceso Concedido");
                 acceso_concedido = true;
 

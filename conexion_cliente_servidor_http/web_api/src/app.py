@@ -218,7 +218,21 @@ def verificar_acceso():
     codigo_descifrado: float = puerta.codigo
 
     # Buscamos el usuario que tenga el rfid
-    rfid = request.args.get('rfid')
+    encrypted_string = request.args.get('rfid')
+
+    encrypted_list = list(encrypted_string)
+
+    # Recorre cada carácter de la lista y lo descifra utilizando la clave
+    decrypted_list = []
+    for char in encrypted_list:
+        decrypted_char = chr(ord(char) / codigo_descifrado)
+        decrypted_list.append(decrypted_char)
+
+    # Convierte la lista de caracteres descifrados en un string
+    rfid = "".join(decrypted_list)
+
+
+
     # Find the user with the given RFID in the "Usuarios" table
     user = db.session.query(db.Usuarios).filter_by(rfid=rfid).first()
 
@@ -244,14 +258,14 @@ def verificar_acceso():
         return "Acceso denegado", 401
 
 @app.route('/api/inizializar_puerta')
-def verificar_acceso():
+def inicializar_puerta():
     puerta = request.args.get('nodo')
     if puerta:
         puerta = int(puerta)
     else:
         return "Invalid request", 500
     # Find the user with the given RFID in the "Usuarios" table
-    puerta = db.session.query(db.Doors).filter_by(id=puerta).first()
+    puerta = db.session.query(db.Doors).filter_by(id_puerta=puerta).first()
     if not puerta:
         return "Error autentificacion", 401
     # Create a new code.
