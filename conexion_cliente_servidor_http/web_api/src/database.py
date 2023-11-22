@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from sqlalchemy.orm import scoped_session
 Base = declarative_base()
 # Create the engine and the Session class
-engine = create_engine('sqlite:///my_database.db')
+engine = create_engine('sqlite:////home/pi/DATA/my_database.db')
 Session = sessionmaker(bind=engine)
 
 # Define a many-to-many relationship between "Doors" and "Usuarios"
