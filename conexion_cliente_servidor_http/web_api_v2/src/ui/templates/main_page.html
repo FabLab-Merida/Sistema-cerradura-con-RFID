@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Door and User Management</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    {% block doors_section %}
+    <h2>Door Management</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Associated Users</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for door in doors %}
+            <tr>
+                <td>{{ door.id_puerta }}</td>
+                <td>{{ door.nombre }}</td>
+                <td>{{ door.codigo }}</td>
+                <td>{% for user in door.usuarios %}
+                    {{ user.rfid }} - {{ user.nombre }}<br>
+                {% endfor %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include 'doors/add_form.html' %}
+    {% endblock doors_section %}
+
+    {% block users_section %}
+    <h2>User Management</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>RFID</th>
+                <th>Name</th>
+                <th>Surname</th>
+                <th>Associated Door</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.rfid }}</td>
+                <td>{{ user.nombre }}</td>
+                <td>{{ user.apellidos }}</td>
+                <td>{% if user.puertas %}
+                    {% for puerta in user.puertas %}
+                         {{ puerta.nombre }},
+                    {% endfor %}
+                {% else %}
+                    No associated door
+                {% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include 'users/add_form.html' %}
+    {% endblock users_section %}
+</body>
+</html>

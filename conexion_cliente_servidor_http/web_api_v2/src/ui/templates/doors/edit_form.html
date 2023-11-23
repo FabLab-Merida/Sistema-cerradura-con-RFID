@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Edit Door</h1>
+
+    <form action="{{ url_for('doors.edit_door') }}" method="post">
+        <div class="form-group">
+            <label for="id_puerta">ID</label>
+            <input type="text" class="form-control" id="id_puerta" name="id_puerta" value="{{ door.id_puerta }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="nombre">Name</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ door.nombre }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+</div>
+{% endblock %}
+l>

@@ -1,0 +1,15 @@
+<form method="POST" action="/api/users/add">
+    <label for="user_rfid">User RFID:</label>
+    <input type="text" id="user_rfid" name="rfid" required>
+    <label for="user_name">User Name:</label>
+    <input type="text" id="user_name" name="nombre" required>
+    <label for="user_surname">User Surname:</label>
+    <input type="text" id="user_surname" name="apellidos" required>
+    <select name="door_id" id="user_door" required>
+        <option value="">Select Door</option>
+        {% for door in doors %}
+            <option value="{{ door.id_puerta }}">{{ door.nombre }}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Add User">
+</form>
