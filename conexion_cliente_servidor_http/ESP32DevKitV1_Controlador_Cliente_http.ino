@@ -19,14 +19,16 @@
 #define MASTER_KEY "26-196-179-180"
 
 
-const char* ssid     = "REDACTED";
-const char* password = "REDACTED";
+const char* ssid     = "raspi-puerta";
+const char* password = "raspi-puerta";
+
 
 //const char* ssid     = "REDACTED";
 //const char* password = "REDACTED";
 
-//const char* host = "158.49.92.110";
-const char* host = "192.168.18.92"; // IP local del servidor
+// const char* host = "192.168.0.135";
+const char* host = "10.0.0.1"; // IP local del servidor
+const char* httpPort = "8123";
 const char* nodopuerta   = "1";
 String codigo = ""; //Código para cifrar la comunicacion
 
@@ -51,9 +53,10 @@ void mostrarByteArray(byte* buffer, byte bufferSize) {
 MFRC522 mfrc522 (RFID_PIN_SPI, RFID_PIN_RESET);
 MFRC522::MIFARE_Key clave = {keyByte: {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
 bool hacer_registro = false;
-
+bool inicio_exitoso = false;
 void setup()
 {
+
     Serial.begin(SERIAL_BITRATE);
     SPI.begin();
     mfrc522.PCD_Init();
@@ -73,8 +76,10 @@ void setup()
     Serial.println(ssid);
 
     WiFi.begin(ssid, password);
-
+    WiFi.setAutoConnect(true);
+    WiFi.setAutoReconnect(true);
     while (WiFi.status() != WL_CONNECTED) {
+
         delay(500);
         Serial.print(".");
     }
@@ -84,18 +89,24 @@ void setup()
     Serial.println("WiFi connected");
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
-    Serial.println("Setup Finalizado");
+    while (!inicio_exitoso){
+
     digitalWrite(LED_PIN_LISTO,HIGH);
 
-    inicializa_puerta();
-
+    if (inicializa_puerta() == 403) {
+      Serial.println("Error de inicializacion");
+      parpadear_error();
+    } else {
+      inicio_exitoso = true;
+    }
+  }
+  Serial.println("Setup Finalizado");
 }
 
 /** Prubeas **/
 void loop()
 {
     if (!mfrc522.PICC_IsNewCardPresent()) {
-        Serial.println("Esperando tarjeta");
         delay(500);
         return;
     }
@@ -103,7 +114,6 @@ void loop()
     // Si hay una tarjeta cerca, que la eleccione
     // En caso contrario que no continúe
     if (!mfrc522.PICC_ReadCardSerial()) {
-        Serial.println("Esperando tarjeta");
         delay(500);
         return;
     }
@@ -147,13 +157,14 @@ void loop()
 }
 
 //Método para obtener el primer código para realizar el cifrado
-void inicializa_puerta() {
+int inicializa_puerta() {
   HTTPClient http;
-    const int httpPort = 80;
 
     // We now create a URI for the request
     String url = "http://";
     url += host;
+    url += ":";
+    url += httpPort;
     url += "/api/inizializar_puerta";
     url += "?nodo=";
     url += "1";
@@ -164,15 +175,29 @@ void inicializa_puerta() {
 
     // This will send the request to the server
     Serial.println(String("GET ") + url + " HTTP/1.1\r\n" +
-                 "Host: " + host + "\r\n" +
-                 "Connection: close\r\n\r\n");
+                 "Host: " + host + "\r\n\r\n");
 
     int httpCode = http.GET();
     codigo = http.getString();
+
+    Serial.print("Puerta inicializada con codigo: " + codigo);
+    return httpCode;
 }
 
 
-
+void parpadear_error(){
+  digitalWrite(LED_PIN_PERMITIDO,LOW);
+  digitalWrite(LED_PIN_DENEGADO,LOW);
+  for (int i=0; i<10;i++) {
+    digitalWrite(LED_PIN_DENEGADO,HIGH);
+    digitalWrite(LED_PIN_BUZZER,HIGH);
+    delay(500);
+    digitalWrite(LED_PIN_PERMITIDO,LOW);
+    digitalWrite(LED_PIN_DENEGADO,LOW);
+    digitalWrite(LED_PIN_BUZZER,LOW);
+    delay(500);
+  }
+}
 
 bool autenticar (String privateKey) {
       Serial.print("connecting to ");
@@ -181,7 +206,7 @@ bool autenticar (String privateKey) {
 
     // Use WiFiClient class to create TCP connections
     HTTPClient http;
-    const int httpPort = 80;
+
 
   String* groups = split(privateKey, '-');
 
@@ -196,13 +221,15 @@ bool autenticar (String privateKey) {
   }
 
 // Une los grupos de elementos cifrados en un string separados por el guion
-String encryptedString = join(groups, '-');
+    String encryptedString = join(groups, '-');
 
 
 
     // We now create a URI for the request
     String url = "http://";
     url += host;
+    url += ":";
+    url += httpPort;
     url += "/api/verificar_acceso";
     url += "?nodo=";
     url += "1";
@@ -258,6 +285,8 @@ void registrar(String strUID, String nombre, String apellidos, String puertas) {
     // Build the URL for the POST request
     String url = "http://";
     url += host;
+    url += ":";
+    url += httpPort;
     url += "/api/add_user";
 
 

@@ -78,10 +78,12 @@ class DoorsAdd(Resource):
     )
     def post(self):
         # Get the door data from the request body
+        id = request.form.get("door_id")
+
         nombre = request.form.get("nombre")
 
         # Create a new door object
-        new_door = database.Doors(nombre=nombre)
+        new_door = database.Doors(id_puerta=id, nombre=nombre)
 
         # Add the door to the database session
         database.session.add(new_door)
