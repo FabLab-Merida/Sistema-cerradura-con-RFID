@@ -21,6 +21,7 @@ En la siguiente imagen se aprecia las conexiones necesarias para poder leer las 
 #define LED_PIN_DENEGADO 12
 #define LED_PIN_PERMITIDO 13
 
+#define TIEMPO_AUTORIZACION_SEGUNDOS 5
 
 const String codigo_tarjeta_autorizada = "";
 
@@ -63,10 +64,11 @@ void setup()
     Serial.println("Setup Finalizado");
     digitalWrite(LED_PIN_LISTO,HIGH);
 }
-
+unsigned long tiempo_inicio;
 
 void loop() {
-
+    
+    
     // El primer paso es comprobar si existe alguna tarjeta cerca
     if (!mfrc522.PICC_IsNewCardPresent()) {
         Serial.println("Esperando tarjeta");
@@ -96,11 +98,17 @@ void loop() {
     // Ejecutamos la autenticación.
     if (autenticar(strUID1)) {
       // Paso permitido
-      digitalWrite(LED_PIN_PERMITIDO,HIGH);
+      tiempo_inicio = millis();
+      while (tiempo_inicio  + TIEMPO_AUTORIZACION_SEGUNDOS * 1000 > millis() ){
+          digitalWrite(LED_PIN_PERMITIDO,HIGH);
+          Serial.println("autorizado");
+          delay(1000);
+      }
 
     } else {
       // Paso denegado
       digitalWrite(LED_PIN_DENEGADO,HIGH);
+      Serial.println("denegado");
     }
     delay(1500);
 
@@ -112,7 +120,8 @@ void loop() {
 
 
 bool autenticar (String codigo_tarjeta) {
+  Serial.println("Comparando "+ codigo_tarjeta + " con " + codigo_tarjeta_autorizada);
   // Si son iguales, devuelve True
+  Serial.println(codigo_tarjeta == codigo_tarjeta_autorizada);
   return codigo_tarjeta == codigo_tarjeta_autorizada;
-}
-```
+}```
