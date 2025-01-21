@@ -26,3 +26,6 @@ El programa del nodo estará constantemente a la espera de que se acerque una ta
 Cuando el servidor recibe algun codigo rfid, deja de escuchar por radio y comprueba si esa ID está autorizada o no. Posteriormente encenderá la radio en modo escritura y enviará la respuesta (permitido o no). Para finalizar se apagará el modo de escritura y encenderá el modo de escucha a la espera de que otro nodo de puerta envie el ID de la tarjeta Rfid para autorizar un nuevo acceso.
 
 ## Conexion cliente servidor con ESP32 mediante http
+
+
+(https://espressif.github.io/arduino-esp32/package_esp32_index.json)[https://espressif.github.io/arduino-esp32/package_esp32_index.json]
