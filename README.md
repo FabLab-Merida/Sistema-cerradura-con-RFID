@@ -28,4 +28,4 @@ Cuando el servidor recibe algun codigo rfid, deja de escuchar por radio y compru
 ## Conexion cliente servidor con ESP32 mediante http
 
 
-(https://espressif.github.io/arduino-esp32/package_esp32_index.json)[https://espressif.github.io/arduino-esp32/package_esp32_index.json]
+https://espressif.github.io/arduino-esp32/package_esp32_index.json
